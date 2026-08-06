@@ -24,6 +24,7 @@
  *
  */
 
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shenandoah/shenandoahAsserts.hpp"
 #include "gc/shenandoah/shenandoahCollectorPolicy.hpp"
 #include "gc/shenandoah/shenandoahConcurrentGC.hpp"
@@ -375,7 +376,7 @@ void ShenandoahGenerationalControlThread::run_gc_cycle(const ShenandoahGCRequest
 //      +--->  Global Degen +--------------------> Full <----+
 //
 void ShenandoahGenerationalControlThread::service_concurrent_normal_cycle(const ShenandoahGCRequest& request) {
-  log_info(gc, ergo)("Start GC cycle (%s)", request.generation->name());
+  log_ergo(Info, gc, ergo)("Start GC cycle (%s)", request.generation->name());
   if (request.generation->is_old()) {
     service_concurrent_old_cycle(request);
   } else {

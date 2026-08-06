@@ -24,6 +24,7 @@
  */
 
 
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shenandoah/heuristics/shenandoahPassiveHeuristics.hpp"
 #include "gc/shenandoah/shenandoahCollectionSet.hpp"
 #include "gc/shenandoah/shenandoahHeap.inline.hpp"
@@ -61,7 +62,7 @@ void ShenandoahPassiveHeuristics::choose_collection_set_from_regiondata(Shenando
   size_t available = MAX2(max_capacity / 100 * ShenandoahEvacReserve, actual_free);
   size_t max_cset  = (size_t)(available / ShenandoahEvacWaste);
 
-  log_info(gc, ergo)("CSet Selection. Actual Free: %zu%s, Max CSet: %zu%s",
+  log_ergo(Info, gc, ergo)("CSet Selection. Actual Free: %zu%s, Max CSet: %zu%s",
                      byte_size_in_proper_unit(actual_free), proper_unit_for_byte_size(actual_free),
                      byte_size_in_proper_unit(max_cset),    proper_unit_for_byte_size(max_cset));
 

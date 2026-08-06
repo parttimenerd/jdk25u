@@ -25,6 +25,7 @@
 #include "gc/g1/g1CollectionSetCandidates.inline.hpp"
 #include "gc/g1/g1CollectionSetChooser.hpp"
 #include "gc/g1/g1HeapRegion.inline.hpp"
+#include "gc/shared/gcErgoEvent.hpp"
 #include "utilities/growableArray.hpp"
 
 uint G1CSetCandidateGroup::_next_group_id = 2;
@@ -107,7 +108,7 @@ double G1CSetCandidateGroup::predict_group_total_time_ms() const {
                          predicted_copy_time_ms +
                          non_young_other_time_ms;
 
-  log_trace(gc, ergo, cset) ("Prediction for group %u (%u regions): total_time %.2fms card_rs_length %zu merge_scan_time %.2fms code_root_scan_time_ms %.2fms evac_time_ms %.2fms other_time %.2fms bytes_to_copy %zu",
+  log_ergo(Trace, gc, ergo, cset) ("Prediction for group %u (%u regions): total_time %.2fms card_rs_length %zu merge_scan_time %.2fms code_root_scan_time_ms %.2fms evac_time_ms %.2fms other_time %.2fms bytes_to_copy %zu",
                              group_id(),
                              length(),
                              total_time_ms,
@@ -283,7 +284,7 @@ void G1CollectionSetCandidates::sort_marking_by_efficiency() {
 void G1CollectionSetCandidates::set_candidates_from_marking(G1CollectionSetCandidateInfo* candidate_infos,
                                                             uint num_infos) {
   if (num_infos == 0) {
-    log_debug(gc, ergo, cset) ("No regions selected from marking.");
+    log_ergo(Debug, gc, ergo, cset) ("No regions selected from marking.");
     return;
   }
 
@@ -327,7 +328,7 @@ void G1CollectionSetCandidates::set_candidates_from_marking(G1CollectionSetCandi
 
   assert(_from_marking_groups.num_regions() == num_infos, "Must be!");
 
-  log_debug(gc, ergo, cset) ("Finished creating %u collection groups from %u regions", _from_marking_groups.length(), num_infos);
+  log_ergo(Debug, gc, ergo, cset) ("Finished creating %u collection groups from %u regions", _from_marking_groups.length(), num_infos);
   _last_marking_candidates_length = num_infos;
 
   verify();

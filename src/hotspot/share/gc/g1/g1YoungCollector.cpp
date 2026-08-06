@@ -49,6 +49,7 @@
 #include "gc/g1/g1YoungGCPostEvacuateTasks.hpp"
 #include "gc/g1/g1YoungGCPreEvacuateTasks.hpp"
 #include "gc/shared/concurrentGCBreakpoints.hpp"
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gc_globals.hpp"
 #include "gc/shared/gcTimer.hpp"
 #include "gc/shared/gcTraceTime.inline.hpp"
@@ -824,7 +825,7 @@ void G1YoungCollector::evacuate_optional_collection_set(G1ParScanThreadStateSet*
 
     if (time_left_ms < 0 ||
         !collection_set()->finalize_optional_for_evacuation(time_left_ms * policy()->optional_evacuation_fraction())) {
-      log_trace(gc, ergo, cset)("Skipping evacuation of %u optional regions, no more regions can be evacuated in %.3fms",
+      log_ergo(Trace, gc, ergo, cset)("Skipping evacuation of %u optional regions, no more regions can be evacuated in %.3fms",
                                 collection_set()->num_optional_regions(), time_left_ms);
       break;
     }

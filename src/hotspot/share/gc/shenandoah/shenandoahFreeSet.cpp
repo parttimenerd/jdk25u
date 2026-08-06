@@ -24,6 +24,7 @@
  *
  */
 
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/tlab_globals.hpp"
 #include "gc/shenandoah/shenandoahAffiliation.hpp"
 #include "gc/shenandoah/shenandoahFreeSet.hpp"
@@ -1616,7 +1617,7 @@ void ShenandoahFreeSet::move_regions_from_collector_to_mutator(size_t max_xfer_r
   }
 
   size_t total_xfer = collector_xfer + old_collector_xfer;
-  log_info(gc, ergo)("At start of update refs, moving %zu%s to Mutator free set from Collector Reserve ("
+  log_ergo(Info, gc, ergo)("At start of update refs, moving %zu%s to Mutator free set from Collector Reserve ("
                      "%zu%s) and from Old Collector Reserve (%zu%s)",
                      byte_size_in_proper_unit(total_xfer), proper_unit_for_byte_size(total_xfer),
                      byte_size_in_proper_unit(collector_xfer), proper_unit_for_byte_size(collector_xfer),
@@ -1653,11 +1654,11 @@ void ShenandoahFreeSet::establish_generation_sizes(size_t young_region_count, si
 
     if (new_old_capacity > original_old_capacity) {
       size_t region_count = (new_old_capacity - original_old_capacity) / region_size_bytes;
-      log_info(gc, ergo)("Transfer %zu region(s) from %s to %s, yielding increased size: " PROPERFMT,
+      log_ergo(Info, gc, ergo)("Transfer %zu region(s) from %s to %s, yielding increased size: " PROPERFMT,
                          region_count, young_gen->name(), old_gen->name(), PROPERFMTARGS(new_old_capacity));
     } else if (new_old_capacity < original_old_capacity) {
       size_t region_count = (original_old_capacity - new_old_capacity) / region_size_bytes;
-      log_info(gc, ergo)("Transfer %zu region(s) from %s to %s, yielding increased size: " PROPERFMT,
+      log_ergo(Info, gc, ergo)("Transfer %zu region(s) from %s to %s, yielding increased size: " PROPERFMT,
                          region_count, old_gen->name(), young_gen->name(), PROPERFMTARGS(new_young_capacity));
     }
     // This balances generations, so clear any pending request to balance.

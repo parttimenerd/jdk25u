@@ -41,7 +41,9 @@
 #include "gc/g1/g1RemSet.hpp"
 #include "gc/g1/g1YoungGCPostEvacuateTasks.hpp"
 #include "gc/shared/bufferNode.hpp"
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/partialArrayState.hpp"
+#include "gc/shared/gcId.hpp"
 #include "jfr/jfrEvents.hpp"
 #include "oops/access.inline.hpp"
 #include "oops/compressedOops.inline.hpp"
@@ -291,7 +293,7 @@ public:
 
     _chunk_size = static_cast<uint>(G1HeapRegion::GrainWords / _num_chunks_per_region);
 
-    log_debug(gc, ergo)("Initializing removing self forwards with %u chunks per region",
+    log_ergo(Debug, gc, ergo)("Initializing removing self forwards with %u chunks per region",
                         _num_chunks_per_region);
 
     _chunk_bitmap.resize(_num_chunks_per_region * _num_evac_fail_regions);
@@ -477,6 +479,17 @@ public:
 
     _humongous_regions_reclaimed = cl.humongous_regions_reclaimed();
     _bytes_freed = cl.bytes_freed();
+
+    EventG1HumongousReclaim event;
+    if (event.should_commit()) {
+      event.set_gcId(GCId::current());
+      event.set_humongousTotal(g1h->num_humongous_objects());
+      event.set_humongousCandidates(g1h->num_humongous_reclaim_candidates());
+      event.set_objectsReclaimed(cl.humongous_objects_reclaimed());
+      event.set_regionsReclaimed(cl.humongous_regions_reclaimed());
+      event.set_freedBytes(cl.bytes_freed());
+      event.commit();
+    }
   }
 };
 

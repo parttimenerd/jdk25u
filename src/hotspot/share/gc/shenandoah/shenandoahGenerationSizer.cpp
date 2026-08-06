@@ -23,6 +23,7 @@
  *
  */
 
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gc_globals.hpp"
 #include "gc/shenandoah/shenandoahGeneration.hpp"
 #include "gc/shenandoah/shenandoahGenerationSizer.hpp"
@@ -137,7 +138,7 @@ bool ShenandoahGenerationSizer::transfer_regions(ShenandoahGeneration* src, Shen
   src->decrease_capacity(bytes_to_transfer);
   dst->increase_capacity(bytes_to_transfer);
   const size_t new_size = dst->max_capacity();
-  log_info(gc, ergo)("Transfer %zu region(s) from %s to %s, yielding increased size: " PROPERFMT,
+  log_ergo(Info, gc, ergo)("Transfer %zu region(s) from %s to %s, yielding increased size: " PROPERFMT,
                      regions, src->name(), dst->name(), PROPERFMTARGS(new_size));
   return true;
 }
@@ -189,7 +190,7 @@ void ShenandoahGenerationSizer::force_transfer_to_old(size_t regions) const {
   young_gen->decrease_capacity(bytes_to_transfer);
   old_gen->increase_capacity(bytes_to_transfer);
   const size_t new_size = old_gen->max_capacity();
-  log_info(gc, ergo)("Forcing transfer of %zu region(s) from %s to %s, yielding increased size: " PROPERFMT,
+  log_ergo(Info, gc, ergo)("Forcing transfer of %zu region(s) from %s to %s, yielding increased size: " PROPERFMT,
                      regions, young_gen->name(), old_gen->name(), PROPERFMTARGS(new_size));
 }
 

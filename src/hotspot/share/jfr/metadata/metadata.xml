@@ -1322,6 +1322,57 @@
     <Field type="Tickspan" name="maximum" label="Maximum" description="An approximation of the maximum wall-clock time it took for the method to execute" />
   </Event>
 
+  <Event name="G1ConcurrentRefinement" category="Java Virtual Machine, GC, Detailed" label="G1 Concurrent Refinement" startTime="false" experimental="true"
+      description="Concurrent-refinement work for one G1 refinement round (gc+refine parity)">
+    <Field type="uint" name="gcId" label="GC Identifier" relation="GcId" experimental="true" />
+    <Field type="Tickspan" name="refinementTime" label="Refinement Time" description="Wall-clock time the background refinement threads spent scanning and refining dirty cards in this round" experimental="true" />
+    <Field type="ulong" name="refinedCards" label="Refined Cards" description="Number of dirty cards actually scanned and refined into remembered sets this round" experimental="true" />
+    <Field type="ulong" name="precleanedCards" label="Precleaned Cards" description="Number of cards whose refinement was skipped because another thread had already refined them" experimental="true" />
+    <Field type="ulong" name="dirtiedCards" label="Dirtied Cards" description="Number of cards the mutator marked dirty and thus queued for refinement in this round" experimental="true" />
+  </Event>
+
+  <Event name="G1HumongousReclaim" category="Java Virtual Machine, GC, Detailed" label="G1 Humongous Reclaim" startTime="false" experimental="true"
+      description="Eager reclaim of dead humongous regions during a G1 young pause (gc+humongous parity)">
+    <Field type="uint" name="gcId" label="GC Identifier" relation="GcId" experimental="true" />
+    <Field type="ulong" name="humongousTotal" label="Humongous Total" description="Total number of humongous objects in the heap at the start of the collection" experimental="true" />
+    <Field type="ulong" name="humongousCandidates" label="Humongous Candidates" description="Number of humongous objects eligible for eager reclaim (e.g. typeArrays with no incoming references)" experimental="true" />
+    <Field type="ulong" name="objectsReclaimed" label="Objects Reclaimed" description="Number of humongous objects found dead and eagerly reclaimed in this pause" experimental="true" />
+    <Field type="ulong" name="regionsReclaimed" label="Regions Reclaimed" description="Number of heap regions returned to the free list by eager reclaim (an object may span several regions)" experimental="true" />
+    <Field type="ulong" contentType="bytes" name="freedBytes" label="Freed Bytes" description="Total bytes of the reclaimed regions returned to the heap by eager reclaim" experimental="true" />
+  </Event>
+
+  <Event name="TLABSummary" category="Java Virtual Machine, GC, Detailed" label="TLAB Summary" startTime="false" experimental="true"
+      description="Aggregate thread-local allocation buffer statistics gathered when a GC retires the TLABs (gc+tlab parity)">
+    <Field type="uint" name="gcId" label="GC Identifier" relation="GcId" experimental="true" />
+    <Field type="uint" name="allocatingThreads" label="Allocating Threads" description="Number of threads that allocated at least one object since the last GC" experimental="true" />
+    <Field type="uint" name="totalRefills" label="Total Refills" description="Total TLAB refills across all threads; a refill fetches a fresh TLAB from the shared heap when the current one is exhausted" experimental="true" />
+    <Field type="uint" name="maxRefills" label="Max Refills" description="Most TLAB refills performed by any single thread (the worst allocator)" experimental="true" />
+    <Field type="uint" name="slowAllocations" label="Slow Allocations" description="Total allocations that fell off the TLAB fast path and went directly to the shared heap (typically objects too large for the buffer)" experimental="true" />
+    <Field type="uint" name="maxSlowAllocations" label="Max Slow Allocations" description="Most slow-path allocations performed by any single thread" experimental="true" />
+    <Field type="ulong" contentType="bytes" name="gcWaste" label="GC Waste" description="Total unused bytes remaining in TLABs when the GC forced retirement of partly-full buffers" experimental="true" />
+    <Field type="ulong" contentType="bytes" name="maxGcWaste" label="Max GC Waste" description="Largest GC waste in any single thread's TLAB" experimental="true" />
+    <Field type="ulong" contentType="bytes" name="refillWaste" label="Refill Waste" description="Total bytes abandoned when threads refilled TLABs before they were full (remainder below the refill-waste limit)" experimental="true" />
+    <Field type="ulong" contentType="bytes" name="maxRefillWaste" label="Max Refill Waste" description="Largest refill waste in any single thread's TLAB" experimental="true" />
+    <Field type="ulong" contentType="bytes" name="totalAllocatedSize" label="Total Allocated Size" description="Total bytes allocated in TLABs across all threads since the last GC; the denominator of the log's TLAB waste percentage" experimental="true" />
+  </Event>
+
+
+  <Event name="ZNMethodSummary" category="Java Virtual Machine, GC, Detailed" label="ZGC NMethod Summary" startTime="false" experimental="true"
+      description="Size of ZGC's nmethod root set for a collection cycle (gc+nmethod parity)">
+    <Field type="uint" name="gcId" label="GC Identifier" relation="GcId" experimental="true" />
+    <Field type="ulong" name="registered" label="Registered NMethods" description="Number of compiled nmethods currently tracked by ZGC whose embedded oops must be scanned as roots" experimental="true" />
+    <Field type="ulong" name="unregistered" label="Unregistered NMethods" description="Number of nmethods removed from ZGC's table (e.g. unloaded or flushed) since the last table rebuild" experimental="true" />
+  </Event>
+
+
+
+  <Event name="NativeHeapTrim" category="Java Virtual Machine, Runtime" label="Native Heap Trim" startTime="true" thread="false" experimental="true"
+      description="One periodic native-heap trim by the JVM native memory trimmer, with process RSS before and after (trimnative parity)">
+    <Field type="ulong" name="trimId" label="Trim Identifier" description="Monotonically increasing count of trims performed since JVM start" experimental="true" />
+    <Field type="ulong" contentType="bytes" name="rssBefore" label="RSS Before" description="Process resident set size immediately before the trim" experimental="true" />
+    <Field type="ulong" contentType="bytes" name="rssAfter" label="RSS After" description="Process resident set size immediately after the trim (lower means memory was returned to the OS)" experimental="true" />
+  </Event>
+
   <Type name="DeoptimizationReason" label="Deoptimization Reason">
     <Field type="string" name="reason" label="Reason" />
   </Type>

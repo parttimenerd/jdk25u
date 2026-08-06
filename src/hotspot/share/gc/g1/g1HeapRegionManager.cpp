@@ -31,6 +31,7 @@
 #include "gc/g1/g1HeapRegionPrinter.hpp"
 #include "gc/g1/g1HeapRegionSet.inline.hpp"
 #include "gc/g1/g1NUMAStats.hpp"
+#include "gc/shared/gcErgoEvent.hpp"
 #include "jfr/jfrEvents.hpp"
 #include "logging/logStream.hpp"
 #include "memory/allocation.hpp"
@@ -799,7 +800,7 @@ void G1HeapRegionManager::rebuild_free_list(WorkerThreads* workers) {
   uint const num_workers = clamp(max_num_regions(), 1u, workers->active_workers());
   G1RebuildFreeListTask task(this, num_workers);
 
-  log_debug(gc, ergo)("Running %s using %u workers for rebuilding free list of regions",
+  log_ergo(Debug, gc, ergo)("Running %s using %u workers for rebuilding free list of regions",
                       task.name(), num_workers);
   workers->run_task(&task, num_workers);
 

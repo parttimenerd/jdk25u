@@ -30,6 +30,7 @@
 #include "gc/g1/g1HeapRegion.inline.hpp"
 #include "gc/g1/g1HeapRegionRemSet.inline.hpp"
 #include "gc/g1/g1Policy.hpp"
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gc_globals.hpp"
 #include "logging/log.hpp"
 #include "memory/allocation.inline.hpp"
@@ -185,7 +186,7 @@ void G1ConcurrentRefine::update_pending_cards_target(double logged_cards_time_ms
                                                      double goal_ms) {
   size_t minimum = minimum_pending_cards_target();
   if ((processed_logged_cards < minimum) || (logged_cards_time_ms == 0.0)) {
-    log_debug(gc, ergo, refine)("Unchanged pending cards target: %zu",
+    log_ergo(Debug, gc, ergo, refine)("Unchanged pending cards target: %zu",
                                 _pending_cards_target);
     return;
   }
@@ -202,7 +203,7 @@ void G1ConcurrentRefine::update_pending_cards_target(double logged_cards_time_ms
   // Apply minimum target.
   new_target = MAX2(new_target, minimum_pending_cards_target());
   _pending_cards_target = new_target;
-  log_debug(gc, ergo, refine)("New pending cards target: %zu", new_target);
+  log_ergo(Debug, gc, ergo, refine)("New pending cards target: %zu", new_target);
 }
 
 void G1ConcurrentRefine::adjust_after_gc(double logged_cards_time_ms,

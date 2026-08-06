@@ -26,6 +26,7 @@
 #include "gc/g1/g1CollectionSetCandidates.hpp"
 #include "gc/g1/g1CollectionSetChooser.hpp"
 #include "gc/g1/g1HeapRegionRemSet.inline.hpp"
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/space.hpp"
 #include "runtime/atomic.hpp"
 #include "utilities/quickSort.hpp"
@@ -223,7 +224,7 @@ class G1BuildCandidateRegionsTask : public WorkerTask {
       num_pruned++;
     }
 
-    log_debug(gc, ergo, cset)("Pruned %u regions out of %u, leaving %zu bytes waste (allowed %zu)",
+    log_ergo(Debug, gc, ergo, cset)("Pruned %u regions out of %u, leaving %zu bytes waste (allowed %zu)",
                               num_pruned,
                               num_candidates,
                               wasted_bytes,

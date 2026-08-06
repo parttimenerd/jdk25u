@@ -37,6 +37,8 @@
 #include "utilities/globalDefinitions.hpp"
 #include "utilities/ostream.hpp"
 #include "utilities/vmError.hpp"
+#include "jfr/jfrEvents.hpp"
+#include "jfr/utilities/jfrTime.hpp"
 
 class NativeHeapTrimmerThread : public NamedThread {
 
@@ -137,13 +139,15 @@ class NativeHeapTrimmerThread : public NamedThread {
 
     os::size_change_t sc = { 0, 0 };
     LogTarget(Info, trimnative) lt;
-    const bool logging_enabled = lt.is_enabled();
+    const bool logging_enabled = lt.is_enabled() || EventNativeHeapTrim::is_enabled();
 
     // We only collect size change information if we are logging; save the access to procfs otherwise.
+    const Ticks jfr_start = Ticks::now();
     if (os::trim_native_heap(logging_enabled ? &sc : nullptr)) {
       _num_trims_performed++;
       if (logging_enabled) {
         double t2 = now();
+        const Ticks jfr_end = Ticks::now();
         if (sc.after != SIZE_MAX) {
           const size_t delta = sc.after < sc.before ? (sc.before - sc.after) : (sc.after - sc.before);
           const char sign = sc.after < sc.before ? '-' : '+';
@@ -151,6 +155,15 @@ class NativeHeapTrimmerThread : public NamedThread {
                                _num_trims_performed,
                                PROPERFMTARGS(sc.before), PROPERFMTARGS(sc.after), sign, PROPERFMTARGS(delta),
                                to_ms(t2 - t1));
+          EventNativeHeapTrim event(UNTIMED);
+          if (event.should_commit()) {
+            event.set_starttime(jfr_start);
+            event.set_endtime(jfr_end);
+            event.set_trimId(_num_trims_performed);
+            event.set_rssBefore(sc.before);
+            event.set_rssAfter(sc.after);
+            event.commit();
+          }
         } else {
           log_info(trimnative)("Periodic Trim (" UINT64_FORMAT "): complete (no details) %.3fms",
                                _num_trims_performed,

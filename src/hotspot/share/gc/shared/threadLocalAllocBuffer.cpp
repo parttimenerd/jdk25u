@@ -24,6 +24,8 @@
 
 #include "compiler/compilerDefinitions.inline.hpp"
 #include "gc/shared/collectedHeap.hpp"
+#include "gc/shared/gcId.hpp"
+#include "jfr/jfrEvents.hpp"
 #include "gc/shared/threadLocalAllocBuffer.inline.hpp"
 #include "gc/shared/tlab_globals.hpp"
 #include "logging/log.hpp"
@@ -425,6 +427,22 @@ void ThreadLocalAllocStats::reset() {
 void ThreadLocalAllocStats::publish() {
   if (_total_allocations == 0) {
     return;
+  }
+
+  EventTLABSummary event;
+  if (event.should_commit()) {
+    event.set_gcId(GCId::current_or_undefined());
+    event.set_allocatingThreads(_allocating_threads);
+    event.set_totalRefills(_total_refills);
+    event.set_maxRefills(_max_refills);
+    event.set_slowAllocations(_total_slow_allocations);
+    event.set_maxSlowAllocations(_max_slow_allocations);
+    event.set_gcWaste(_total_gc_waste * HeapWordSize);
+    event.set_maxGcWaste(_max_gc_waste * HeapWordSize);
+    event.set_refillWaste(_total_refill_waste * HeapWordSize);
+    event.set_maxRefillWaste(_max_refill_waste * HeapWordSize);
+    event.set_totalAllocatedSize(_total_allocations * HeapWordSize);
+    event.commit();
   }
 
   _allocating_threads_avg.sample(_allocating_threads);

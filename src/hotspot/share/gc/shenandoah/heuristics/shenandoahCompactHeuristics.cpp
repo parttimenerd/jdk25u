@@ -24,6 +24,7 @@
  */
 
 
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shenandoah/heuristics/shenandoahCompactHeuristics.hpp"
 #include "gc/shenandoah/shenandoahCollectionSet.hpp"
 #include "gc/shenandoah/shenandoahFreeSet.hpp"
@@ -84,7 +85,7 @@ void ShenandoahCompactHeuristics::choose_collection_set_from_regiondata(Shenando
   // Do not select too large CSet that would overflow the available free space
   size_t max_cset = actual_free * 3 / 4;
 
-  log_info(gc, ergo)("CSet Selection. Actual Free: %zu%s, Max CSet: %zu%s",
+  log_ergo(Info, gc, ergo)("CSet Selection. Actual Free: %zu%s, Max CSet: %zu%s",
                      byte_size_in_proper_unit(actual_free), proper_unit_for_byte_size(actual_free),
                      byte_size_in_proper_unit(max_cset),    proper_unit_for_byte_size(max_cset));
 

@@ -29,6 +29,7 @@
 #include "gc/parallel/psCardTable.hpp"
 #include "gc/parallel/psOldGen.hpp"
 #include "gc/shared/cardTableBarrierSet.hpp"
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gcLocker.hpp"
 #include "gc/shared/spaceDecorator.hpp"
 #include "logging/log.hpp"
@@ -299,7 +300,7 @@ void PSOldGen::resize(size_t desired_free_space) {
 
   const size_t current_size = capacity_in_bytes();
 
-  log_trace(gc, ergo)("AdaptiveSizePolicy::old generation size: "
+  log_ergo(Trace, gc, ergo)("AdaptiveSizePolicy::old generation size: "
     "desired free: %zu used: %zu"
     " new size: %zu current size %zu"
     " gen limits: %zu / %zu",
@@ -318,7 +319,7 @@ void PSOldGen::resize(size_t desired_free_space) {
     shrink(change_bytes);
   }
 
-  log_trace(gc, ergo)("AdaptiveSizePolicy::old generation size: collection: %d (%zu) -> (%zu) ",
+  log_ergo(Trace, gc, ergo)("AdaptiveSizePolicy::old generation size: collection: %d (%zu) -> (%zu) ",
                       ParallelScavengeHeap::heap()->total_collections(),
                       size_before,
                       virtual_space()->committed_size());

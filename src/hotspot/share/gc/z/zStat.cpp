@@ -22,6 +22,8 @@
  */
 
 #include "gc/shared/gc_globals.hpp"
+#include "gc/shared/gcId.hpp"
+#include "jfr/jfrEvents.hpp"
 #include "gc/z/zAbort.inline.hpp"
 #include "gc/z/zCollectedHeap.hpp"
 #include "gc/z/zCPU.inline.hpp"
@@ -1622,6 +1624,13 @@ void ZStatNMethods::print() {
   log_info(gc, nmethod)("NMethods: %zu registered, %zu unregistered",
                         ZNMethodTable::registered_nmethods(),
                         ZNMethodTable::unregistered_nmethods());
+  EventZNMethodSummary event;
+  if (event.should_commit()) {
+    event.set_gcId(GCId::current_or_undefined());
+    event.set_registered(ZNMethodTable::registered_nmethods());
+    event.set_unregistered(ZNMethodTable::unregistered_nmethods());
+    event.commit();
+  }
 }
 
 //

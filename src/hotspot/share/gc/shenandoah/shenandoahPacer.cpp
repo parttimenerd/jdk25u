@@ -24,6 +24,7 @@
  */
 
 
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shenandoah/shenandoahFreeSet.hpp"
 #include "gc/shenandoah/shenandoahHeap.inline.hpp"
 #include "gc/shenandoah/shenandoahPacer.hpp"
@@ -74,7 +75,7 @@ void ShenandoahPacer::setup_for_mark() {
 
   restart_with(non_taxable, tax);
 
-  log_info(gc, ergo)("Pacer for Mark. Expected Live: %zu%s, Free: %zu%s, "
+  log_ergo(Info, gc, ergo)("Pacer for Mark. Expected Live: %zu%s, Free: %zu%s, "
                      "Non-Taxable: %zu%s, Alloc Tax Rate: %.1fx",
                      byte_size_in_proper_unit(live),        proper_unit_for_byte_size(live),
                      byte_size_in_proper_unit(free),        proper_unit_for_byte_size(free),
@@ -100,7 +101,7 @@ void ShenandoahPacer::setup_for_evac() {
 
   restart_with(non_taxable, tax);
 
-  log_info(gc, ergo)("Pacer for Evacuation. Used CSet: %zu%s, Free: %zu%s, "
+  log_ergo(Info, gc, ergo)("Pacer for Evacuation. Used CSet: %zu%s, Free: %zu%s, "
                      "Non-Taxable: %zu%s, Alloc Tax Rate: %.1fx",
                      byte_size_in_proper_unit(used),        proper_unit_for_byte_size(used),
                      byte_size_in_proper_unit(free),        proper_unit_for_byte_size(free),
@@ -126,7 +127,7 @@ void ShenandoahPacer::setup_for_update_refs() {
 
   restart_with(non_taxable, tax);
 
-  log_info(gc, ergo)("Pacer for Update Refs. Used: %zu%s, Free: %zu%s, "
+  log_ergo(Info, gc, ergo)("Pacer for Update Refs. Used: %zu%s, Free: %zu%s, "
                      "Non-Taxable: %zu%s, Alloc Tax Rate: %.1fx",
                      byte_size_in_proper_unit(used),        proper_unit_for_byte_size(used),
                      byte_size_in_proper_unit(free),        proper_unit_for_byte_size(free),
@@ -151,7 +152,7 @@ void ShenandoahPacer::setup_for_idle() {
 
   restart_with(initial, tax);
 
-  log_info(gc, ergo)("Pacer for Idle. Initial: %zu%s, Alloc Tax Rate: %.1fx",
+  log_ergo(Info, gc, ergo)("Pacer for Idle. Initial: %zu%s, Alloc Tax Rate: %.1fx",
                      byte_size_in_proper_unit(initial), proper_unit_for_byte_size(initial),
                      tax);
 }
@@ -167,7 +168,7 @@ void ShenandoahPacer::setup_for_reset() {
   size_t initial = _heap->max_capacity();
   restart_with(initial, 1.0);
 
-  log_info(gc, ergo)("Pacer for Reset. Non-Taxable: %zu%s",
+  log_ergo(Info, gc, ergo)("Pacer for Reset. Non-Taxable: %zu%s",
                      byte_size_in_proper_unit(initial), proper_unit_for_byte_size(initial));
 }
 

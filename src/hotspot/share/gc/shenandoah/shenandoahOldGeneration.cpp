@@ -23,6 +23,7 @@
  *
  */
 
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shenandoah/heuristics/shenandoahOldHeuristics.hpp"
 #include "gc/shenandoah/shenandoahAsserts.hpp"
 #include "gc/shenandoah/shenandoahCardTable.hpp"
@@ -697,7 +698,7 @@ void ShenandoahOldGeneration::handle_failed_promotion(Thread* thread, size_t siz
     const size_t words_remaining = (plab == nullptr)? 0: plab->words_remaining();
     const char* promote_enabled = ShenandoahThreadLocalData::allow_plab_promotions(thread)? "enabled": "disabled";
 
-    log_info(gc, ergo)("Promotion failed, size %zu, has plab? %s, PLAB remaining: %zu"
+    log_ergo(Info, gc, ergo)("Promotion failed, size %zu, has plab? %s, PLAB remaining: %zu"
                        ", plab promotions %s, promotion reserve: %zu, promotion expended: %zu"
                        ", old capacity: %zu, old_used: %zu, old unaffiliated regions: %zu",
                        size * HeapWordSize, plab == nullptr? "no": "yes",
@@ -705,7 +706,7 @@ void ShenandoahOldGeneration::handle_failed_promotion(Thread* thread, size_t siz
                        max_capacity(), used(), free_unaffiliated_regions());
 
     if ((gc_id == last_report_epoch) && (epoch_report_count >= MaxReportsPerEpoch)) {
-      log_debug(gc, ergo)("Squelching additional promotion failure reports for current epoch");
+      log_ergo(Debug, gc, ergo)("Squelching additional promotion failure reports for current epoch");
     } else if (gc_id != last_report_epoch) {
       last_report_epoch = gc_id;
       epoch_report_count = 1;
@@ -744,7 +745,7 @@ void ShenandoahOldGeneration::abandon_collection_candidates() {
 void ShenandoahOldGeneration::prepare_for_mixed_collections_after_global_gc() {
   assert(is_mark_complete(), "Expected old generation mark to be complete after global cycle.");
   _old_heuristics->prepare_for_old_collections();
-  log_info(gc, ergo)("After choosing global collection set, mixed candidates: " UINT32_FORMAT ", coalescing candidates: %zu",
+  log_ergo(Info, gc, ergo)("After choosing global collection set, mixed candidates: " UINT32_FORMAT ", coalescing candidates: %zu",
                _old_heuristics->unprocessed_old_collection_candidates(),
                _old_heuristics->coalesce_and_fill_candidates_count());
 }

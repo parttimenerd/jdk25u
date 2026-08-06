@@ -24,6 +24,7 @@
 
 #include "gc/shared/adaptiveSizePolicy.hpp"
 #include "gc/shared/gcCause.hpp"
+#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gcUtil.hpp"
 #include "logging/log.hpp"
 #include "runtime/timer.hpp"
@@ -138,9 +139,9 @@ void AdaptiveSizePolicy::minor_collection_end(GCCause::Cause gc_cause) {
     update_minor_pause_young_estimator(minor_pause_in_ms);
     update_minor_pause_old_estimator(minor_pause_in_ms);
 
-    log_trace(gc, ergo)("AdaptiveSizePolicy::minor_collection_end: minor gc cost: %f  average: %f",
+    log_ergo(Trace, gc, ergo)("AdaptiveSizePolicy::minor_collection_end: minor gc cost: %f  average: %f",
                         collection_cost, _avg_minor_gc_cost->average());
-    log_trace(gc, ergo)("  minor pause: %f minor period %f",
+    log_ergo(Trace, gc, ergo)("  minor pause: %f minor period %f",
                         minor_pause_in_ms, _latest_minor_mutator_interval_seconds * MILLIUNITS);
 
     // Calculate variable used to estimate collection cost vs. gen sizes
@@ -247,9 +248,9 @@ double AdaptiveSizePolicy::decaying_gc_cost() const {
 
       // Decay using the time-since-last-major-gc
       decayed_major_gc_cost = decaying_major_gc_cost();
-      log_trace(gc, ergo)("decaying_gc_cost: major interval average: %f  time since last major gc: %f",
+      log_ergo(Trace, gc, ergo)("decaying_gc_cost: major interval average: %f  time since last major gc: %f",
                     avg_major_interval, time_since_last_major_gc);
-      log_trace(gc, ergo)("  major gc cost: %f  decayed major gc cost: %f",
+      log_ergo(Trace, gc, ergo)("  major gc cost: %f  decayed major gc cost: %f",
                     major_gc_cost(), decayed_major_gc_cost);
     }
   }
@@ -334,7 +335,7 @@ class AdaptiveSizePolicySpaceOverheadTester: public GCOverheadTester {
     // the promo size will shrink for no good reason.
     promo_limit = MAX2(promo_limit, _promo_size);
 
-    log_trace(gc, ergo)(
+    log_ergo(Trace, gc, ergo)(
           "AdaptiveSizePolicySpaceOverheadTester::is_exceeded:"
           " promo_limit: %zu"
           " total_free_limit: %zu"
@@ -376,7 +377,7 @@ void AdaptiveSizePolicy::check_gc_overhead_limit(
 bool AdaptiveSizePolicy::print() const {
   assert(UseAdaptiveSizePolicy, "UseAdaptiveSizePolicy need to be enabled.");
 
-  if (!log_is_enabled(Debug, gc, ergo)) {
+  if (!log_is_enabled(Debug, gc, ergo) && !GCErgoEvent::should_emit(LogLevel::Debug)) {
     return false;
   }
 
@@ -446,11 +447,11 @@ bool AdaptiveSizePolicy::print() const {
     tenured_gen_action = shrink_msg;
   }
 
-  log_debug(gc, ergo)("UseAdaptiveSizePolicy actions to meet %s", action);
-  log_debug(gc, ergo)("                       GC overhead (%%)");
-  log_debug(gc, ergo)("    Young generation:     %7.2f\t  %s",
+  log_ergo(Debug, gc, ergo)("UseAdaptiveSizePolicy actions to meet %s", action);
+  log_ergo(Debug, gc, ergo)("                       GC overhead (%%)");
+  log_ergo(Debug, gc, ergo)("    Young generation:     %7.2f\t  %s",
                       100.0 * avg_minor_gc_cost()->average(), young_gen_action);
-  log_debug(gc, ergo)("    Tenured generation:   %7.2f\t  %s",
+  log_ergo(Debug, gc, ergo)("    Tenured generation:   %7.2f\t  %s",
                       100.0 * avg_major_gc_cost()->average(), tenured_gen_action);
   return true;
 }
@@ -458,11 +459,11 @@ bool AdaptiveSizePolicy::print() const {
 void AdaptiveSizePolicy::print_tenuring_threshold( uint new_tenuring_threshold_arg) const {
   // Tenuring threshold
   if (decrement_tenuring_threshold_for_survivor_limit()) {
-    log_debug(gc, ergo)("Tenuring threshold: (attempted to decrease to avoid survivor space overflow) = %u", new_tenuring_threshold_arg);
+    log_ergo(Debug, gc, ergo)("Tenuring threshold: (attempted to decrease to avoid survivor space overflow) = %u", new_tenuring_threshold_arg);
   } else if (decrement_tenuring_threshold_for_gc_cost()) {
-    log_debug(gc, ergo)("Tenuring threshold: (attempted to decrease to balance GC costs) = %u", new_tenuring_threshold_arg);
+    log_ergo(Debug, gc, ergo)("Tenuring threshold: (attempted to decrease to balance GC costs) = %u", new_tenuring_threshold_arg);
   } else if (increment_tenuring_threshold_for_gc_cost()) {
-    log_debug(gc, ergo)("Tenuring threshold: (attempted to increase to balance GC costs) = %u", new_tenuring_threshold_arg);
+    log_ergo(Debug, gc, ergo)("Tenuring threshold: (attempted to increase to balance GC costs) = %u", new_tenuring_threshold_arg);
   } else {
     assert(!tenuring_threshold_change(), "(no change was attempted)");
   }
