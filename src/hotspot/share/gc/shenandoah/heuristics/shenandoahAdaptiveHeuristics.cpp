@@ -26,7 +26,6 @@
 
 
 #include "gc/shared/gcCause.hpp"
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shenandoah/heuristics/shenandoahAdaptiveHeuristics.hpp"
 #include "gc/shenandoah/heuristics/shenandoahHeuristics.hpp"
 #include "gc/shenandoah/heuristics/shenandoahSpaceInfo.hpp"
@@ -97,7 +96,7 @@ void ShenandoahAdaptiveHeuristics::choose_collection_set_from_regiondata(Shenand
   size_t free_target = (capacity / 100 * ShenandoahMinFreeThreshold) + max_cset;
   size_t min_garbage = (free_target > actual_free ? (free_target - actual_free) : 0);
 
-  log_ergo(Info, gc, ergo)("Adaptive CSet Selection. Target Free: %zu%s, Actual Free: "
+  log_info(gc, ergo)("Adaptive CSet Selection. Target Free: %zu%s, Actual Free: "
                      "%zu%s, Max Evacuation: %zu%s, Min Garbage: %zu%s",
                      byte_size_in_proper_unit(free_target), proper_unit_for_byte_size(free_target),
                      byte_size_in_proper_unit(actual_free), proper_unit_for_byte_size(actual_free),
@@ -143,7 +142,7 @@ void ShenandoahAdaptiveHeuristics::record_success_concurrent() {
   if (available_sd > 0) {
     double available_avg = _available.avg();
     z_score = (double(available) - available_avg) / available_sd;
-    log_ergo(Debug, gc, ergo)("Available: %zu %sB, z-score=%.3f. Average available: %.1f %sB +/- %.1f %sB.",
+    log_debug(gc, ergo)("Available: %zu %sB, z-score=%.3f. Average available: %.1f %sB +/- %.1f %sB.",
                         byte_size_in_proper_unit(available), proper_unit_for_byte_size(available),
                         z_score,
                         byte_size_in_proper_unit(available_avg), proper_unit_for_byte_size(available_avg),
@@ -296,7 +295,7 @@ bool ShenandoahAdaptiveHeuristics::should_start_gc() {
                  byte_size_in_proper_unit(avg_alloc_rate), proper_unit_for_byte_size(avg_alloc_rate),
                  byte_size_in_proper_unit(allocation_headroom), proper_unit_for_byte_size(allocation_headroom),
                  _margin_of_error_sd);
-    log_ergo(Info, gc, ergo)("Free headroom: %zu%s (free) - %zu%s (spike) - %zu%s (penalties) = %zu%s",
+    log_info(gc, ergo)("Free headroom: %zu%s (free) - %zu%s (spike) - %zu%s (penalties) = %zu%s",
                        byte_size_in_proper_unit(available),           proper_unit_for_byte_size(available),
                        byte_size_in_proper_unit(spike_headroom),      proper_unit_for_byte_size(spike_headroom),
                        byte_size_in_proper_unit(penalties),           proper_unit_for_byte_size(penalties),
@@ -342,12 +341,12 @@ void ShenandoahAdaptiveHeuristics::adjust_last_trigger_parameters(double amount)
 
 void ShenandoahAdaptiveHeuristics::adjust_margin_of_error(double amount) {
   _margin_of_error_sd = saturate(_margin_of_error_sd + amount, MINIMUM_CONFIDENCE, MAXIMUM_CONFIDENCE);
-  log_ergo(Debug, gc, ergo)("Margin of error now %.2f", _margin_of_error_sd);
+  log_debug(gc, ergo)("Margin of error now %.2f", _margin_of_error_sd);
 }
 
 void ShenandoahAdaptiveHeuristics::adjust_spike_threshold(double amount) {
   _spike_threshold_sd = saturate(_spike_threshold_sd - amount, MINIMUM_CONFIDENCE, MAXIMUM_CONFIDENCE);
-  log_ergo(Debug, gc, ergo)("Spike threshold now: %.2f", _spike_threshold_sd);
+  log_debug(gc, ergo)("Spike threshold now: %.2f", _spike_threshold_sd);
 }
 
 size_t ShenandoahAdaptiveHeuristics::min_free_threshold() {

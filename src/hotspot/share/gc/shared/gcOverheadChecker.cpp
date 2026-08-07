@@ -23,7 +23,6 @@
  *
  */
 
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gcOverheadChecker.hpp"
 #include "gc/shared/softRefPolicy.hpp"
 #include "logging/log.hpp"
@@ -76,7 +75,7 @@ void GCOverheadChecker::check_gc_overhead_limit(GCOverheadTester* time_overhead,
           bool near_limit = gc_overhead_limit_near();
           if (near_limit) {
             soft_ref_policy->set_should_clear_all_soft_refs(true);
-            log_ergo(Trace, gc, ergo)("Nearing GC overhead limit, will be clearing all SoftReference");
+            log_trace(gc, ergo)("Nearing GC overhead limit, will be clearing all SoftReference");
           }
         }
       }
@@ -94,11 +93,11 @@ void GCOverheadChecker::check_gc_overhead_limit(GCOverheadTester* time_overhead,
 
   if (UseGCOverheadLimit) {
     if (gc_overhead_limit_exceeded()) {
-      log_ergo(Trace, gc, ergo)("GC is exceeding overhead limit of %u%%", GCTimeLimit);
+      log_trace(gc, ergo)("GC is exceeding overhead limit of %u%%", GCTimeLimit);
       reset_gc_overhead_limit_count();
     } else if (print_gc_overhead_limit_would_be_exceeded) {
       assert(_gc_overhead_limit_count > 0, "Should not be printing");
-      log_ergo(Trace, gc, ergo)("GC would exceed overhead limit of %u%% %d consecutive time(s)",
+      log_trace(gc, ergo)("GC would exceed overhead limit of %u%% %d consecutive time(s)",
                           GCTimeLimit, _gc_overhead_limit_count);
     }
   }

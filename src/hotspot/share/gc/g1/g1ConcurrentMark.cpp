@@ -45,7 +45,6 @@
 #include "gc/g1/g1RegionMarkStatsCache.inline.hpp"
 #include "gc/g1/g1ThreadLocalData.hpp"
 #include "gc/g1/g1Trace.hpp"
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gcId.hpp"
 #include "gc/shared/gcTimer.hpp"
 #include "gc/shared/gcTraceTime.inline.hpp"
@@ -790,7 +789,7 @@ void G1ConcurrentMark::clear_bitmap(WorkerThreads* workers, bool may_yield) {
 
   G1ClearBitMapTask cl(this, num_workers, may_yield);
 
-  log_ergo(Debug, gc, ergo)("Running %s with %u workers for %zu work units.", cl.name(), num_workers, num_chunks);
+  log_debug(gc, ergo)("Running %s with %u workers for %zu work units.", cl.name(), num_workers, num_chunks);
   workers->run_task(&cl, num_workers);
   guarantee(may_yield || cl.is_complete(), "Must have completed iteration when not yielding.");
 }
@@ -1084,7 +1083,7 @@ void G1ConcurrentMark::scan_root_regions() {
                                   _max_concurrent_workers);
 
     G1CMRootRegionScanTask task(this);
-    log_ergo(Debug, gc, ergo)("Running %s using %u workers for %u work units.",
+    log_debug(gc, ergo)("Running %s using %u workers for %u work units.",
                         task.name(), num_workers, root_regions()->num_root_regions());
     _concurrent_workers->run_task(&task, num_workers);
 

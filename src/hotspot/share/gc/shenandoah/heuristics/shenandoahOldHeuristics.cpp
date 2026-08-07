@@ -23,7 +23,6 @@
  *
  */
 
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shenandoah/heuristics/shenandoahOldHeuristics.hpp"
 #include "gc/shenandoah/shenandoahCollectionSet.hpp"
 #include "gc/shenandoah/shenandoahCollectorPolicy.hpp"
@@ -85,7 +84,7 @@ bool ShenandoahOldHeuristics::prime_collection_set(ShenandoahCollectionSet* coll
     // We have unprocessed old collection candidates, but the heuristic has given up on evacuating them.
     // This is most likely because they were _all_ pinned at the time of the last mixed evacuation (and
     // this in turn is most likely because there are just one or two candidate regions remaining).
-    log_ergo(Info, gc, ergo)("Remaining " UINT32_FORMAT " old regions are being coalesced and filled", unprocessed_old_collection_candidates());
+    log_info(gc, ergo)("Remaining " UINT32_FORMAT " old regions are being coalesced and filled", unprocessed_old_collection_candidates());
     return false;
   }
 
@@ -223,7 +222,7 @@ bool ShenandoahOldHeuristics::prime_collection_set(ShenandoahCollectionSet* coll
   }
   decrease_unprocessed_old_collection_candidates_live_memory(evacuated_old_bytes);
   if (included_old_regions > 0) {
-    log_ergo(Info, gc, ergo)("Old-gen piggyback evac (" UINT32_FORMAT " regions, evacuating " PROPERFMT ", reclaiming: " PROPERFMT ")",
+    log_info(gc, ergo)("Old-gen piggyback evac (" UINT32_FORMAT " regions, evacuating " PROPERFMT ", reclaiming: " PROPERFMT ")",
                   included_old_regions, PROPERFMTARGS(evacuated_old_bytes), PROPERFMTARGS(collected_old_bytes));
   }
 
@@ -240,10 +239,10 @@ bool ShenandoahOldHeuristics::prime_collection_set(ShenandoahCollectionSet* coll
     // if they are all pinned we transition to a state that will allow us to make these uncollected
     // (pinned) regions parsable.
     if (all_candidates_are_pinned()) {
-      log_ergo(Info, gc, ergo)("All candidate regions " UINT32_FORMAT " are pinned", unprocessed_old_collection_candidates());
+      log_info(gc, ergo)("All candidate regions " UINT32_FORMAT " are pinned", unprocessed_old_collection_candidates());
       _old_generation->abandon_mixed_evacuations();
     } else {
-      log_ergo(Info, gc, ergo)("No regions selected for mixed collection. "
+      log_info(gc, ergo)("No regions selected for mixed collection. "
                          "Old evacuation budget: " PROPERFMT ", Remaining evacuation budget: " PROPERFMT
                          ", Lost capacity: " PROPERFMT
                          ", Next candidate: " UINT32_FORMAT ", Last candidate: " UINT32_FORMAT,
@@ -484,12 +483,12 @@ void ShenandoahOldHeuristics::prepare_for_old_collections() {
   const size_t mixed_evac_live = old_candidates * region_size_bytes - (candidates_garbage + unfragmented);
   set_unprocessed_old_collection_candidates_live_memory(mixed_evac_live);
 
-  log_ergo(Info, gc, ergo)("Old-Gen Collectable Garbage: " PROPERFMT " consolidated with free: " PROPERFMT ", over %zu regions",
+  log_info(gc, ergo)("Old-Gen Collectable Garbage: " PROPERFMT " consolidated with free: " PROPERFMT ", over %zu regions",
                      PROPERFMTARGS(collectable_garbage), PROPERFMTARGS(unfragmented), old_candidates);
-  log_ergo(Info, gc, ergo)("Old-Gen Immediate Garbage: " PROPERFMT " over %zu regions",
+  log_info(gc, ergo)("Old-Gen Immediate Garbage: " PROPERFMT " over %zu regions",
                      PROPERFMTARGS(immediate_garbage), immediate_regions);
-  log_ergo(Info, gc, ergo)("Old regions selected for defragmentation: %zu", defrag_count);
-  log_ergo(Info, gc, ergo)("Old regions not selected: %zu", total_uncollected_old_regions);
+  log_info(gc, ergo)("Old regions selected for defragmentation: %zu", defrag_count);
+  log_info(gc, ergo)("Old regions not selected: %zu", total_uncollected_old_regions);
 
   if (unprocessed_old_collection_candidates() > 0) {
     _old_generation->transition_to(ShenandoahOldGeneration::EVACUATING);

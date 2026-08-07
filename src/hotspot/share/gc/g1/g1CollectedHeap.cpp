@@ -79,7 +79,6 @@
 #include "gc/shared/concurrentGCBreakpoints.hpp"
 #include "gc/shared/fullGCForwarding.hpp"
 #include "gc/shared/gcBehaviours.hpp"
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gcHeapSummary.hpp"
 #include "gc/shared/gcId.hpp"
 #include "gc/shared/gcTimer.hpp"
@@ -180,7 +179,7 @@ G1HeapRegion* G1CollectedHeap::new_region(size_t word_size,
     // safepoint.
     assert(SafepointSynchronize::is_at_safepoint(), "invariant");
 
-    log_ergo(Debug, gc, ergo, heap)("Attempt heap expansion (region allocation request failed). Allocation request: %zuB",
+    log_debug(gc, ergo, heap)("Attempt heap expansion (region allocation request failed). Allocation request: %zuB",
                               word_size * HeapWordSize);
 
     assert(word_size * HeapWordSize < G1HeapRegion::GrainBytes,
@@ -359,7 +358,7 @@ HeapWord* G1CollectedHeap::humongous_obj_allocate(size_t word_size) {
     humongous_start = _hrm.expand_and_allocate_humongous(obj_regions);
     if (humongous_start != nullptr) {
       // We managed to find a region by expanding the heap.
-      log_ergo(Debug, gc, ergo, heap)("Heap expansion (humongous allocation request). Allocation request: %zuB",
+      log_debug(gc, ergo, heap)("Heap expansion (humongous allocation request). Allocation request: %zuB",
                                 word_size * HeapWordSize);
       policy()->record_new_heap_size(num_committed_regions());
     } else {
@@ -528,7 +527,7 @@ HeapWord* G1CollectedHeap::alloc_archive_region(size_t word_size, HeapWord* pref
   }
   increase_used(word_size * HeapWordSize);
   if (commits != 0) {
-    log_ergo(Debug, gc, ergo, heap)("Attempt heap expansion (allocate archive regions). Total size: %zuB",
+    log_debug(gc, ergo, heap)("Attempt heap expansion (allocate archive regions). Total size: %zuB",
                               G1HeapRegion::GrainWords * HeapWordSize * commits);
   }
 
@@ -597,7 +596,7 @@ void G1CollectedHeap::dealloc_archive_regions(MemRegion range) {
   iterate_regions_in_range(range, dealloc_archive_region);
 
   if (shrink_count != 0) {
-    log_ergo(Debug, gc, ergo, heap)("Attempt heap shrinking (CDS archive regions). Total size: %zuB (%u Regions)",
+    log_debug(gc, ergo, heap)("Attempt heap shrinking (CDS archive regions). Total size: %zuB (%u Regions)",
                               G1HeapRegion::GrainWords * HeapWordSize * shrink_count, shrink_count);
     // Explicit uncommit.
     uncommit_regions(shrink_count);
@@ -892,7 +891,7 @@ void G1CollectedHeap::do_full_collection(bool clear_all_soft_refs) {
 
 void G1CollectedHeap::upgrade_to_full_collection() {
   GCCauseSetter compaction(this, GCCause::_g1_compaction_pause);
-  log_ergo(Info, gc, ergo)("Attempting full compaction clearing soft references");
+  log_info(gc, ergo)("Attempting full compaction clearing soft references");
   do_full_collection(true  /* clear_all_soft_refs */,
                      false /* do_maximal_compaction */,
                      size_t(0) /* allocation_word_size */);
@@ -977,9 +976,9 @@ HeapWord* G1CollectedHeap::satisfy_failed_allocation_helper(size_t word_size,
     // If maximal_compaction is set we clear all soft references and don't
     // allow any dead wood to be left on the heap.
     if (maximal_compaction) {
-      log_ergo(Info, gc, ergo)("Attempting maximal full compaction clearing soft references");
+      log_info(gc, ergo)("Attempting maximal full compaction clearing soft references");
     } else {
-      log_ergo(Info, gc, ergo)("Attempting full compaction");
+      log_info(gc, ergo)("Attempting full compaction");
     }
     do_full_collection(maximal_compaction /* clear_all_soft_refs */,
                        maximal_compaction /* do_maximal_compaction */,
@@ -1052,7 +1051,7 @@ HeapWord* G1CollectedHeap::expand_and_allocate(size_t word_size) {
   _verifier->verify_region_sets_optional();
 
   size_t expand_bytes = MAX2(word_size * HeapWordSize, MinHeapDeltaBytes);
-  log_ergo(Debug, gc, ergo, heap)("Attempt heap expansion (allocation request failed). Allocation request: %zuB",
+  log_debug(gc, ergo, heap)("Attempt heap expansion (allocation request failed). Allocation request: %zuB",
                             word_size * HeapWordSize);
 
 
@@ -1069,11 +1068,11 @@ bool G1CollectedHeap::expand(size_t expand_bytes, WorkerThreads* pretouch_worker
   size_t aligned_expand_bytes = os::align_up_vm_page_size(expand_bytes);
   aligned_expand_bytes = align_up(aligned_expand_bytes, G1HeapRegion::GrainBytes);
 
-  log_ergo(Debug, gc, ergo, heap)("Expand the heap. requested expansion amount: %zuB expansion amount: %zuB",
+  log_debug(gc, ergo, heap)("Expand the heap. requested expansion amount: %zuB expansion amount: %zuB",
                             expand_bytes, aligned_expand_bytes);
 
   if (num_inactive_regions() == 0) {
-    log_ergo(Debug, gc, ergo, heap)("Did not expand the heap (heap already fully expanded)");
+    log_debug(gc, ergo, heap)("Did not expand the heap (heap already fully expanded)");
     return false;
   }
 
@@ -1100,7 +1099,7 @@ bool G1CollectedHeap::expand_single_region(uint node_index) {
 
   if (expanded_by == 0) {
     assert(num_inactive_regions() == 0, "Should be no regions left, available: %u", num_inactive_regions());
-    log_ergo(Debug, gc, ergo, heap)("Did not expand the heap (heap already fully expanded)");
+    log_debug(gc, ergo, heap)("Did not expand the heap (heap already fully expanded)");
     return false;
   }
 
@@ -1116,13 +1115,13 @@ void G1CollectedHeap::shrink_helper(size_t shrink_bytes) {
   uint num_regions_removed = _hrm.shrink_by(num_regions_to_remove);
   size_t shrunk_bytes = num_regions_removed * G1HeapRegion::GrainBytes;
 
-  log_ergo(Debug, gc, ergo, heap)("Shrink the heap. requested shrinking amount: %zuB aligned shrinking amount: %zuB actual amount shrunk: %zuB",
+  log_debug(gc, ergo, heap)("Shrink the heap. requested shrinking amount: %zuB aligned shrinking amount: %zuB actual amount shrunk: %zuB",
                             shrink_bytes, aligned_shrink_bytes, shrunk_bytes);
   if (num_regions_removed > 0) {
     log_debug(gc, heap)("Uncommittable regions after shrink: %u", num_regions_removed);
     policy()->record_new_heap_size(num_committed_regions());
   } else {
-    log_ergo(Debug, gc, ergo, heap)("Did not shrink the heap (heap shrinking operation failed)");
+    log_debug(gc, ergo, heap)("Did not shrink the heap (heap shrinking operation failed)");
   }
 }
 

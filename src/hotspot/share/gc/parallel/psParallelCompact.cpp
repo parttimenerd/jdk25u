@@ -45,7 +45,6 @@
 #include "gc/shared/classUnloadingContext.hpp"
 #include "gc/shared/fullGCForwarding.inline.hpp"
 #include "gc/shared/gcCause.hpp"
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gcHeapSummary.hpp"
 #include "gc/shared/gcId.hpp"
 #include "gc/shared/gcLocker.hpp"
@@ -1076,8 +1075,8 @@ bool PSParallelCompact::invoke_no_policy(bool clear_all_soft_refs) {
     size_policy->major_collection_end(old_gen->used_in_bytes(), gc_cause);
 
     if (UseAdaptiveSizePolicy) {
-      log_ergo(Debug, gc, ergo)("AdaptiveSizeStart: collection: %d ", heap->total_collections());
-      log_ergo(Trace, gc, ergo)("old_gen_capacity: %zu young_gen_capacity: %zu",
+      log_debug(gc, ergo)("AdaptiveSizeStart: collection: %d ", heap->total_collections());
+      log_trace(gc, ergo)("old_gen_capacity: %zu young_gen_capacity: %zu",
                           old_gen->capacity_in_bytes(), young_gen->capacity_in_bytes());
 
       // Don't check if the size_policy is ready here.  Let
@@ -1136,7 +1135,7 @@ bool PSParallelCompact::invoke_no_policy(bool clear_all_soft_refs) {
                                size_policy->calculated_survivor_size_in_bytes());
       }
 
-      log_ergo(Debug, gc, ergo)("AdaptiveSizeStop: collection: %d ", heap->total_collections());
+      log_debug(gc, ergo)("AdaptiveSizeStop: collection: %d ", heap->total_collections());
     }
 
     if (UsePerfData) {

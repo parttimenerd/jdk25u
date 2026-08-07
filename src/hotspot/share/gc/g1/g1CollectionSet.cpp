@@ -32,7 +32,6 @@
 #include "gc/g1/g1HeapRegionSet.hpp"
 #include "gc/g1/g1ParScanThreadState.hpp"
 #include "gc/g1/g1Policy.hpp"
-#include "gc/shared/gcErgoEvent.hpp"
 #include "logging/logStream.hpp"
 #include "runtime/orderAccess.hpp"
 #include "utilities/debug.hpp"
@@ -294,7 +293,7 @@ double G1CollectionSet::finalize_young_part(double target_pause_time_ms, G1Survi
 
   size_t pending_cards = _policy->pending_cards_at_gc_start();
 
-  log_ergo(Trace, gc, ergo, cset)("Start choosing CSet. Pending cards: %zu target pause time: %1.2fms",
+  log_trace(gc, ergo, cset)("Start choosing CSet. Pending cards: %zu target pause time: %1.2fms",
                             pending_cards, target_pause_time_ms);
 
   // The young list is laid with the survivor regions from the previous
@@ -314,7 +313,7 @@ double G1CollectionSet::finalize_young_part(double target_pause_time_ms, G1Survi
                                _policy->predict_eden_copy_time_ms(eden_region_length);
   double remaining_time_ms = MAX2(target_pause_time_ms - (predicted_base_time_ms + predicted_eden_time), 0.0);
 
-  log_ergo(Trace, gc, ergo, cset)("Added young regions to CSet. Eden: %u regions, Survivors: %u regions, "
+  log_trace(gc, ergo, cset)("Added young regions to CSet. Eden: %u regions, Survivors: %u regions, "
                             "predicted eden time: %1.2fms, predicted base time: %1.2fms, target pause time: %1.2fms, remaining time: %1.2fms",
                             eden_region_length, survivor_region_length,
                             predicted_eden_time, predicted_base_time_ms, target_pause_time_ms, remaining_time_ms);
@@ -353,7 +352,7 @@ void G1CollectionSet::finalize_old_part(double time_remaining_ms) {
     if (collector_state()->in_mixed_phase()) {
       time_remaining_ms = select_candidates_from_marking(time_remaining_ms);
     } else {
-      log_ergo(Debug, gc, ergo, cset)("Do not add marking candidates to collection set due to pause type.");
+      log_debug(gc, ergo, cset)("Do not add marking candidates to collection set due to pause type.");
     }
 
     if (candidates()->retained_groups().num_regions() > 0) {
@@ -361,7 +360,7 @@ void G1CollectionSet::finalize_old_part(double time_remaining_ms) {
     }
     candidates()->verify();
   } else {
-    log_ergo(Debug, gc, ergo, cset)("No candidates to reclaim.");
+    log_debug(gc, ergo, cset)("No candidates to reclaim.");
   }
 
   _selected_groups_cur_length = collection_set_groups()->length();
@@ -374,7 +373,7 @@ void G1CollectionSet::finalize_old_part(double time_remaining_ms) {
 }
 
 static void print_finish_message(const char* reason, bool from_marking) {
-  log_ergo(Debug, gc, ergo, cset)("Finish adding %s candidates to collection set (%s).",
+  log_debug(gc, ergo, cset)("Finish adding %s candidates to collection set (%s).",
                             from_marking ? "marking" : "retained", reason);
 }
 
@@ -397,7 +396,7 @@ double G1CollectionSet::select_candidates_from_marking(double time_remaining_ms)
 
   G1CSetCandidateGroupList* from_marking_groups = &candidates()->from_marking_groups();
 
-  log_ergo(Debug, gc, ergo, cset)("Start adding marking candidates to collection set. "
+  log_debug(gc, ergo, cset)("Start adding marking candidates to collection set. "
                             "Min %u regions, max %u regions, available %u regions (%u groups), "
                             "time remaining %1.2fms, optional threshold %1.2fms",
                             min_old_cset_length, max_old_cset_length, from_marking_groups->num_regions(), from_marking_groups->length(),
@@ -466,15 +465,15 @@ double G1CollectionSet::select_candidates_from_marking(double time_remaining_ms)
   }
 
   if (from_marking_groups->length() == 0) {
-    log_ergo(Debug, gc, ergo, cset)("Marking candidates exhausted.");
+    log_debug(gc, ergo, cset)("Marking candidates exhausted.");
   }
 
   if (num_expensive_regions > 0) {
-    log_ergo(Debug, gc, ergo, cset)("Added %u marking candidates to collection set although the predicted time was too high.",
+    log_debug(gc, ergo, cset)("Added %u marking candidates to collection set although the predicted time was too high.",
                               num_expensive_regions);
   }
 
-  log_ergo(Debug, gc, ergo, cset)("Finish adding marking candidates to collection set. Initial: %u regions (%u groups), optional: %u regions (%u groups), "
+  log_debug(gc, ergo, cset)("Finish adding marking candidates to collection set. Initial: %u regions (%u groups), optional: %u regions (%u groups), "
                             "predicted initial time: %1.2fms, predicted optional time: %1.2fms, time remaining: %1.2fms",
                             selected_groups.num_regions(), selected_groups.length(), _optional_groups.num_regions(), _optional_groups.length(),
                             predicted_initial_time_ms, predicted_optional_time_ms, time_remaining_ms);
@@ -505,7 +504,7 @@ void G1CollectionSet::select_candidates_from_retained(double time_remaining_ms) 
 
   G1CSetCandidateGroupList* retained_groups = &candidates()->retained_groups();
 
-  log_ergo(Debug, gc, ergo, cset)("Start adding retained candidates to collection set. "
+  log_debug(gc, ergo, cset)("Start adding retained candidates to collection set. "
                             "Min %u regions, available %u regions (%u groups), "
                             "time remaining %1.2fms, optional remaining %1.2fms",
                             min_regions, retained_groups->num_regions(), retained_groups->length(),
@@ -528,9 +527,9 @@ void G1CollectionSet::select_candidates_from_retained(double time_remaining_ms) 
     if (r->has_pinned_objects()) {
       num_pinned_regions++;
       if (ci->update_num_unreclaimed()) {
-        log_ergo(Trace, gc, ergo, cset)("Retained candidate %u can not be reclaimed currently. Skipping.", r->hrm_index());
+        log_trace(gc, ergo, cset)("Retained candidate %u can not be reclaimed currently. Skipping.", r->hrm_index());
       } else {
-        log_ergo(Trace, gc, ergo, cset)("Retained candidate %u can not be reclaimed currently. Dropping.", r->hrm_index());
+        log_trace(gc, ergo, cset)("Retained candidate %u can not be reclaimed currently. Dropping.", r->hrm_index());
         // Drop pinned retained regions to make progress with retained regions. Regions
         // in that list must have been pinned for at least G1NumCollectionsKeepPinned
         // GCs and hence are considered "long lived".
@@ -566,11 +565,11 @@ void G1CollectionSet::select_candidates_from_retained(double time_remaining_ms) 
   }
 
   if (num_initial_regions == retained_groups->num_regions()) {
-    log_ergo(Debug, gc, ergo, cset)("Retained candidates exhausted.");
+    log_debug(gc, ergo, cset)("Retained candidates exhausted.");
   }
 
   if (num_expensive_regions > 0) {
-    log_ergo(Debug, gc, ergo, cset)("Added %u retained candidates to collection set although the predicted time was too high.",
+    log_debug(gc, ergo, cset)("Added %u retained candidates to collection set although the predicted time was too high.",
                               num_expensive_regions);
   }
 
@@ -583,7 +582,7 @@ void G1CollectionSet::select_candidates_from_retained(double time_remaining_ms) 
   assert(num_optional_regions >= prev_num_optional_regions, "Sanity");
   uint selected_optional_regions = num_optional_regions - prev_num_optional_regions;
 
-  log_ergo(Debug, gc, ergo, cset)("Finish adding retained candidates to collection set. Initial: %u, optional: %u, pinned: %u, "
+  log_debug(gc, ergo, cset)("Finish adding retained candidates to collection set. Initial: %u, optional: %u, pinned: %u, "
                             "predicted initial time: %1.2fms, predicted optional time: %1.2fms, "
                             "time remaining: %1.2fms optional time remaining %1.2fms",
                             num_initial_regions, selected_optional_regions, num_pinned_regions,
@@ -602,7 +601,7 @@ double G1CollectionSet::select_candidates_from_optional_groups(double time_remai
     double predicted_time_ms = group->predict_group_total_time_ms();
 
     if (predicted_time_ms > time_remaining_ms) {
-      log_ergo(Debug, gc, ergo, cset)("Prediction %.3fms for group with %u regions does not fit remaining time: %.3fms.",
+      log_debug(gc, ergo, cset)("Prediction %.3fms for group with %u regions does not fit remaining time: %.3fms.",
                                 predicted_time_ms, group->length(), time_remaining_ms);
       break;
     }
@@ -617,7 +616,7 @@ double G1CollectionSet::select_candidates_from_optional_groups(double time_remai
     selected.append(group);
   }
 
-  log_ergo(Debug, gc, ergo, cset) ("Completed with groups, selected %u", num_regions_selected);
+  log_debug(gc, ergo, cset) ("Completed with groups, selected %u", num_regions_selected);
   // Remove selected groups from candidate list.
   if (num_groups_selected > 0) {
     _optional_groups.remove(&selected);
@@ -637,7 +636,7 @@ uint G1CollectionSet::select_optional_collection_set_regions(double time_remaini
 
   time_remaining_ms -= total_prediction_ms;
 
-  log_ergo(Debug, gc, ergo, cset)("Prepared %u regions out of %u for optional evacuation. Total predicted time: %.3fms",
+  log_debug(gc, ergo, cset)("Prepared %u regions out of %u for optional evacuation. Total predicted time: %.3fms",
                             num_regions_selected, optional_regions_count, total_prediction_ms);
   return num_regions_selected;
 }

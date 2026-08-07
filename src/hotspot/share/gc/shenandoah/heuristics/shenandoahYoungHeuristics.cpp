@@ -23,7 +23,6 @@
  *
  */
 
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shenandoah/heuristics/shenandoahOldHeuristics.hpp"
 #include "gc/shenandoah/heuristics/shenandoahYoungHeuristics.hpp"
 #include "gc/shenandoah/shenandoahCollectorPolicy.hpp"
@@ -77,7 +76,7 @@ void ShenandoahYoungHeuristics::choose_young_collection_set(ShenandoahCollection
   const size_t min_garbage = (free_target > actual_free) ? (free_target - actual_free) : 0;
 
 
-  log_ergo(Info, gc, ergo)(
+  log_info(gc, ergo)(
           "Adaptive CSet Selection for YOUNG. Max Evacuation: %zu%s, Actual Free: %zu%s.",
           byte_size_in_proper_unit(max_cset), proper_unit_for_byte_size(max_cset),
           byte_size_in_proper_unit(actual_free), proper_unit_for_byte_size(actual_free));

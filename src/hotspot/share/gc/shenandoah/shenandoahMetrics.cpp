@@ -23,7 +23,6 @@
  *
  */
 
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shenandoah/shenandoahFreeSet.hpp"
 #include "gc/shenandoah/shenandoahHeap.inline.hpp"
 #include "gc/shenandoah/shenandoahHeapRegion.hpp"
@@ -46,7 +45,7 @@ bool ShenandoahMetricsSnapshot::is_good_progress() const {
   // freeset exceeds the critical threshold.
   const size_t free_expected = (ShenandoahHeap::heap()->soft_max_capacity() / 100) * ShenandoahCriticalFreeThreshold;
   const bool prog_free = free_actual >= free_expected;
-  log_ergo(Info, gc, ergo)("%s progress for free space: " PROPERFMT ", need " PROPERFMT,
+  log_info(gc, ergo)("%s progress for free space: " PROPERFMT ", need " PROPERFMT,
                      prog_free ? "Good" : "Bad", PROPERFMTARGS(free_actual), PROPERFMTARGS(free_expected));
   if (!prog_free) {
     return false;
@@ -57,7 +56,7 @@ bool ShenandoahMetricsSnapshot::is_good_progress() const {
   const size_t progress_actual   = (_used_before > used_after) ? _used_before - used_after : 0;
   const size_t progress_expected = ShenandoahHeapRegion::region_size_bytes();
   const bool prog_used = progress_actual >= progress_expected;
-  log_ergo(Info, gc, ergo)("%s progress for used space: " PROPERFMT ", need " PROPERFMT,
+  log_info(gc, ergo)("%s progress for used space: " PROPERFMT ", need " PROPERFMT,
                      prog_used ? "Good" : "Bad", PROPERFMTARGS(progress_actual), PROPERFMTARGS(progress_expected));
   if (prog_used) {
     return true;
@@ -68,7 +67,7 @@ bool ShenandoahMetricsSnapshot::is_good_progress() const {
   const double if_actual = _if_before - if_after;
   const double if_expected = 0.01; // 1% should be enough
   const bool prog_if = if_actual >= if_expected;
-  log_ergo(Info, gc, ergo)("%s progress for internal fragmentation: %.1f%%, need %.1f%%",
+  log_info(gc, ergo)("%s progress for internal fragmentation: %.1f%%, need %.1f%%",
                      prog_if ? "Good" : "Bad",
                      if_actual * 100, if_expected * 100);
   if (prog_if) {
@@ -80,7 +79,7 @@ bool ShenandoahMetricsSnapshot::is_good_progress() const {
   const double ef_actual = _ef_before - ef_after;
   const double ef_expected = 0.01; // 1% should be enough
   const bool prog_ef = ef_actual >= ef_expected;
-  log_ergo(Info, gc, ergo)("%s progress for external fragmentation: %.1f%%, need %.1f%%",
+  log_info(gc, ergo)("%s progress for external fragmentation: %.1f%%, need %.1f%%",
                      prog_ef ? "Good" : "Bad",
                      ef_actual * 100, ef_expected * 100);
   if (prog_ef) {

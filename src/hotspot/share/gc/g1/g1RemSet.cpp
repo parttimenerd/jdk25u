@@ -44,7 +44,6 @@
 #include "gc/g1/g1RootClosures.hpp"
 #include "gc/shared/bufferNode.hpp"
 #include "gc/shared/bufferNodeList.hpp"
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gc_globals.hpp"
 #include "gc/shared/gcTraceTime.inline.hpp"
 #include "jfr/jfrEvents.hpp"
@@ -1471,7 +1470,7 @@ void G1RemSet::merge_heap_roots(bool initial_evacuation) {
 
   {
     G1MergeHeapRootsTask cl(_scan_state, num_workers, initial_evacuation);
-    log_ergo(Debug, gc, ergo)("Running %s using %u workers for %zu regions",
+    log_debug(gc, ergo)("Running %s using %u workers for %zu regions",
                         cl.name(), num_workers, increment_length);
     workers->run_task(&cl, num_workers);
   }

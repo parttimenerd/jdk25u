@@ -24,7 +24,6 @@
  */
 
 #include "gc/shared/fullGCForwarding.inline.hpp"
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/preservedMarks.inline.hpp"
 #include "gc/shenandoah/shenandoahGeneration.hpp"
 #include "gc/shenandoah/shenandoahGenerationalFullGC.hpp"
@@ -124,7 +123,7 @@ void ShenandoahGenerationalFullGC::balance_generations_after_gc(ShenandoahHeap* 
     gen_heap->generation_sizer()->force_transfer_to_old(old_regions_deficit);
   }
 
-  log_ergo(Info, gc, ergo)("FullGC done: young usage: " PROPERFMT ", old usage: " PROPERFMT,
+  log_info(gc, ergo)("FullGC done: young usage: " PROPERFMT ", old usage: " PROPERFMT,
                PROPERFMTARGS(gen_heap->young_generation()->used()),
                PROPERFMTARGS(old_gen->used()));
 }

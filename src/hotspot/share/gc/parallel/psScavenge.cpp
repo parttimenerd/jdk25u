@@ -35,7 +35,6 @@
 #include "gc/parallel/psRootType.hpp"
 #include "gc/parallel/psScavenge.inline.hpp"
 #include "gc/shared/gcCause.hpp"
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gcHeapSummary.hpp"
 #include "gc/shared/gcId.hpp"
 #include "gc/shared/gcLocker.hpp"
@@ -458,8 +457,8 @@ bool PSScavenge::invoke(bool clear_soft_refs) {
       if (UseAdaptiveSizePolicy) {
         // Calculate the new survivor size and tenuring threshold
 
-        log_ergo(Debug, gc, ergo)("AdaptiveSizeStart:  collection: %d ", heap->total_collections());
-        log_ergo(Trace, gc, ergo)("old_gen_capacity: %zu young_gen_capacity: %zu",
+        log_debug(gc, ergo)("AdaptiveSizeStart:  collection: %d ", heap->total_collections());
+        log_trace(gc, ergo)("old_gen_capacity: %zu young_gen_capacity: %zu",
                             old_gen->capacity_in_bytes(), young_gen->capacity_in_bytes());
 
         if (UsePerfData) {
@@ -553,7 +552,7 @@ bool PSScavenge::invoke(bool clear_soft_refs) {
         heap->resize_young_gen(size_policy->calculated_eden_size_in_bytes(),
                                size_policy->calculated_survivor_size_in_bytes());
 
-        log_ergo(Debug, gc, ergo)("AdaptiveSizeStop: collection: %d ", heap->total_collections());
+        log_debug(gc, ergo)("AdaptiveSizeStop: collection: %d ", heap->total_collections());
       }
 
       // Update the structure of the eden. With NUMA-eden CPU hotplugging or offlining can

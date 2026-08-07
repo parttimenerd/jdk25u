@@ -23,7 +23,6 @@
  *
  */
 
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shenandoah/heuristics/shenandoahHeuristics.hpp"
 #include "gc/shenandoah/shenandoahCollectionSetPreselector.hpp"
 #include "gc/shenandoah/shenandoahCollectorPolicy.hpp"
@@ -476,7 +475,7 @@ void ShenandoahGeneration::adjust_evacuation_budgets(ShenandoahHeap* const heap,
            "Cannot transfer (%zu, %zu) more than excess old (%zu)",
            regions_to_xfer, region_size_bytes, excess_old);
     excess_old -= regions_to_xfer * region_size_bytes;
-    log_ergo(Debug, gc, ergo)("%s transferred %zu excess regions to young before start of evacuation",
+    log_debug(gc, ergo)("%s transferred %zu excess regions to young before start of evacuation",
                        result? "Successfully": "Unsuccessfully", regions_to_xfer);
   }
 

@@ -33,7 +33,6 @@
 #include "gc/g1/g1ConcurrentMarkThread.inline.hpp"
 #include "gc/g1/g1ConcurrentRefine.hpp"
 #include "gc/g1/g1ConcurrentRefineStats.hpp"
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gcId.hpp"
 #include "jfr/jfrEvents.hpp"
 #include "gc/g1/g1GCPhaseTimes.hpp"
@@ -199,7 +198,7 @@ void G1Policy::update_young_length_bounds(size_t pending_cards, size_t card_rs_l
   uint new_young_list_desired_length = calculate_young_desired_length(pending_cards, card_rs_length, code_root_rs_length);
   uint new_young_list_target_length = calculate_young_target_length(new_young_list_desired_length);
 
-  log_ergo(Trace, gc, ergo, heap)("Young list length update: pending cards %zu card_rs_length %zu old target %u desired: %u target: %u",
+  log_trace(gc, ergo, heap)("Young list length update: pending cards %zu card_rs_length %zu old target %u desired: %u target: %u",
                             pending_cards,
                             card_rs_length,
                             old_young_list_target_length,
@@ -271,7 +270,7 @@ uint G1Policy::calculate_young_desired_length(size_t pending_cards,
     double retained_time_ms = predict_retained_regions_evac_time();
     double total_time_ms = base_time_ms + retained_time_ms;
 
-    log_ergo(Trace, gc, ergo, heap)("Predicted total base time: total %f base_time %f retained_time %f",
+    log_trace(gc, ergo, heap)("Predicted total base time: total %f base_time %f retained_time %f",
                               total_time_ms, base_time_ms, retained_time_ms);
 
     desired_eden_length_by_pause =
@@ -293,7 +292,7 @@ uint G1Policy::calculate_young_desired_length(size_t pending_cards,
   // Clamp to absolute min/max after we determined desired lengths.
   desired_young_length = clamp(desired_young_length, absolute_min_young_length, absolute_max_young_length);
 
-  log_ergo(Trace, gc, ergo, heap)("Young desired length %u "
+  log_trace(gc, ergo, heap)("Young desired length %u "
                             "survivor length %u "
                             "allocated young length %u "
                             "absolute min young length %u "
@@ -305,20 +304,6 @@ uint G1Policy::calculate_young_desired_length(size_t pending_cards,
                             absolute_max_young_length, desired_eden_length_by_mmu,
                             desired_eden_length_by_pause);
 
-  {
-    EventG1YoungGenSizing event;
-    if (event.should_commit()) {
-      event.set_gcId(GCId::current_or_undefined());
-      event.set_desiredYoungLength(desired_young_length);
-      event.set_survivorLength(survivor_length);
-      event.set_allocatedYoungLength(allocated_young_length);
-      event.set_absoluteMinYoungLength(absolute_min_young_length);
-      event.set_absoluteMaxYoungLength(absolute_max_young_length);
-      event.set_desiredEdenLengthByMmu(desired_eden_length_by_mmu);
-      event.set_desiredEdenLengthByPause(desired_eden_length_by_pause);
-      event.commit();
-    }
-  }
 
   assert(desired_young_length >= allocated_young_length, "must be");
   return desired_young_length;
@@ -335,7 +320,7 @@ uint G1Policy::calculate_young_target_length(uint desired_young_length) const {
     // Already used up all we actually want (may happen as G1 revises the
     // young list length concurrently). Do not allow more, potentially resulting in GC.
     receiving_additional_eden = 0;
-    log_ergo(Trace, gc, ergo, heap)("Young target length: Already used up desired young %u allocated %u",
+    log_trace(gc, ergo, heap)("Young target length: Already used up desired young %u allocated %u",
                               desired_young_length,
                               allocated_young_length);
   } else {
@@ -347,7 +332,7 @@ uint G1Policy::calculate_young_target_length(uint desired_young_length) const {
     uint max_to_eat_into_reserve = MIN2(_young_gen_sizer.min_desired_young_length(),
                                         (_reserve_regions + 1) / 2);
 
-    log_ergo(Trace, gc, ergo, heap)("Young target length: Common "
+    log_trace(gc, ergo, heap)("Young target length: Common "
                               "free regions at end of collection %u "
                               "desired young length %u "
                               "reserve region %u "
@@ -373,7 +358,7 @@ uint G1Policy::calculate_young_target_length(uint desired_young_length) const {
       receiving_additional_eden = allocated_eden_length < receiving_eden ?
                                   receiving_eden - allocated_eden_length : 0;
 
-      log_ergo(Trace, gc, ergo, heap)("Young target length: Fully eat into reserve "
+      log_trace(gc, ergo, heap)("Young target length: Fully eat into reserve "
                                 "receiving eden %u receiving additional eden %u",
                                 receiving_eden, receiving_additional_eden);
     } else if (_free_regions_at_end_of_collection < (desired_eden_length + _reserve_regions)) {
@@ -391,7 +376,7 @@ uint G1Policy::calculate_young_target_length(uint desired_young_length) const {
       receiving_additional_eden = allocated_eden_length < receiving_eden ?
                                   receiving_eden - allocated_eden_length : 0;
 
-      log_ergo(Trace, gc, ergo, heap)("Young target length: Partially eat into reserve "
+      log_trace(gc, ergo, heap)("Young target length: Partially eat into reserve "
                                 "free outside reserve %u "
                                 "receiving within reserve %u "
                                 "receiving eden %u "
@@ -401,7 +386,7 @@ uint G1Policy::calculate_young_target_length(uint desired_young_length) const {
     } else {
       // No need to use the reserve.
       receiving_additional_eden = desired_young_length - allocated_young_length;
-      log_ergo(Trace, gc, ergo, heap)("Young target length: No need to use reserve "
+      log_trace(gc, ergo, heap)("Young target length: No need to use reserve "
                                 "receiving additional eden %u",
                                 receiving_additional_eden);
     }
@@ -411,7 +396,7 @@ uint G1Policy::calculate_young_target_length(uint desired_young_length) const {
 
   assert(target_young_length >= allocated_young_length, "must be");
 
-  log_ergo(Trace, gc, ergo, heap)("Young target length: "
+  log_trace(gc, ergo, heap)("Young target length: "
                             "young target length %u "
                             "allocated young length %u "
                             "received additional eden %u",
@@ -566,7 +551,7 @@ double G1Policy::predict_retained_regions_evac_time() const {
     num_regions++;
   }
 
-  log_ergo(Trace, gc, ergo, heap)("Selected %u of %u retained candidates (pinned %u) taking %1.3fms additional time",
+  log_trace(gc, ergo, heap)("Selected %u of %u retained candidates (pinned %u) taking %1.3fms additional time",
                             num_regions, retained_groups->num_regions(), num_pinned_regions, result);
   return result;
 }
@@ -786,7 +771,7 @@ bool G1Policy::need_to_start_conc_mark(const char* source, size_t alloc_word_siz
   bool result = false;
   if (marking_request_bytes > marking_initiating_used_threshold) {
     result = collector_state()->in_young_only_phase();
-    log_ergo(Debug, gc, ergo, ihop)("%s occupancy: %zuB allocation request: %zuB threshold: %zuB (%1.2f) source: %s",
+    log_debug(gc, ergo, ihop)("%s occupancy: %zuB allocation request: %zuB threshold: %zuB (%1.2f) source: %s",
                               result ? "Request concurrent cycle initiation (occupancy higher than threshold)" : "Do not request concurrent cycle initiation (still doing mixed collections)",
                               cur_used_bytes, alloc_byte_size, marking_initiating_used_threshold, (double) marking_initiating_used_threshold / _g1h->capacity() * 100, source);
   }
@@ -880,7 +865,7 @@ void G1Policy::record_young_collection_end(bool concurrent_operation_is_full_mar
     // This is a mixed GC. Here we decide whether to continue doing more
     // mixed GCs or not.
     if (!next_gc_should_be_mixed()) {
-      log_ergo(Debug, gc, ergo)("do not continue mixed GCs (candidate old regions not available)");
+      log_debug(gc, ergo)("do not continue mixed GCs (candidate old regions not available)");
       collector_state()->set_in_young_only_phase(true);
 
       assert(!candidates()->has_more_marking_candidates(),
@@ -1010,7 +995,7 @@ void G1Policy::record_young_collection_end(bool concurrent_operation_is_full_mar
   size_t predicted_thread_buffer_cards = _analytics->predict_dirtied_cards_in_thread_buffers();
   G1ConcurrentRefine* cr = _g1h->concurrent_refine();
 
-  log_ergo(Debug, gc, ergo, refine)
+  log_debug(gc, ergo, refine)
            ("GC refinement: goal: %zu + %zu / %1.2fms, actual: %zu / %1.2fms, %s",
             cr->pending_cards_target(),
             predicted_thread_buffer_cards,
@@ -1107,7 +1092,7 @@ double G1Policy::predict_base_time_ms(size_t pending_cards,
 
   double total_time = card_merge_time + card_scan_time + code_root_scan_time + constant_other_time + survivor_evac_time;
 
-  log_ergo(Trace, gc, ergo, heap)("Predicted base time: total %f lb_cards %zu card_rs_length %zu effective_scanned_cards %zu "
+  log_trace(gc, ergo, heap)("Predicted base time: total %f lb_cards %zu card_rs_length %zu effective_scanned_cards %zu "
                             "card_merge_time %f card_scan_time %f code_root_rs_length %zu code_root_scan_time %f "
                             "constant_other_time %f survivor_evac_time %f",
                             total_time, pending_cards, card_rs_length, effective_scanned_cards,
@@ -1242,13 +1227,13 @@ bool G1Policy::force_concurrent_start_if_outside_cycle(GCCause::Cause gc_cause) 
   // even while we are still in the process of reclaiming memory.
   bool during_cycle = _g1h->concurrent_mark()->cm_thread()->in_progress();
   if (!during_cycle) {
-    log_ergo(Debug, gc, ergo)("Request concurrent cycle initiation (requested by GC cause). "
+    log_debug(gc, ergo)("Request concurrent cycle initiation (requested by GC cause). "
                         "GC cause: %s",
                         GCCause::to_string(gc_cause));
     collector_state()->set_initiate_conc_mark_if_possible(true);
     return true;
   } else {
-    log_ergo(Debug, gc, ergo)("Do not request concurrent cycle initiation "
+    log_debug(gc, ergo)("Do not request concurrent cycle initiation "
                         "(concurrent cycle already in progress). GC cause: %s",
                         GCCause::to_string(gc_cause));
     return false;
@@ -1297,11 +1282,11 @@ void G1Policy::decide_on_concurrent_start_pause() {
     GCCause::Cause cause = _g1h->gc_cause();
     if ((cause != GCCause::_wb_breakpoint) &&
         ConcurrentGCBreakpoints::is_controlled()) {
-      log_ergo(Debug, gc, ergo)("Do not initiate concurrent cycle (whitebox controlled)");
+      log_debug(gc, ergo)("Do not initiate concurrent cycle (whitebox controlled)");
     } else if (!about_to_start_mixed_phase() && collector_state()->in_young_only_phase()) {
       // Initiate a new concurrent start if there is no marking or reclamation going on.
       initiate_conc_mark();
-      log_ergo(Debug, gc, ergo)("Initiate concurrent cycle (concurrent cycle initiation requested)");
+      log_debug(gc, ergo)("Initiate concurrent cycle (concurrent cycle initiation requested)");
     } else if (_g1h->is_user_requested_concurrent_full_gc(cause) ||
                GCCause::is_codecache_requested_gc(cause) ||
                (cause == GCCause::_wb_breakpoint)) {
@@ -1317,7 +1302,7 @@ void G1Policy::decide_on_concurrent_start_pause() {
       abandon_collection_set_candidates();
       abort_time_to_mixed_tracking();
       initiate_conc_mark();
-      log_ergo(Debug, gc, ergo)("Initiate concurrent cycle (%s requested concurrent cycle)",
+      log_debug(gc, ergo)("Initiate concurrent cycle (%s requested concurrent cycle)",
                           requester_for_mixed_abort(cause));
     } else {
       // The concurrent marking thread is still finishing up the
@@ -1332,7 +1317,7 @@ void G1Policy::decide_on_concurrent_start_pause() {
       // and, if it's in a yield point, it's waiting for us to
       // finish. So, at this point we will not start a cycle and we'll
       // let the concurrent marking thread complete the last one.
-      log_ergo(Debug, gc, ergo)("Do not initiate concurrent cycle (concurrent cycle already in progress)");
+      log_debug(gc, ergo)("Do not initiate concurrent cycle (concurrent cycle already in progress)");
     }
   }
   // Result consistency checks.
@@ -1357,7 +1342,7 @@ void G1Policy::record_concurrent_mark_cleanup_end(bool has_rebuilt_remembered_se
 
   if (!mixed_gc_pending) {
     abort_time_to_mixed_tracking();
-    log_ergo(Debug, gc, ergo)("request young-only gcs (candidate old regions not available)");
+    log_debug(gc, ergo)("request young-only gcs (candidate old regions not available)");
   }
   collector_state()->set_in_young_gc_before_mixed(mixed_gc_pending);
   collector_state()->set_mark_or_rebuild_in_progress(false);

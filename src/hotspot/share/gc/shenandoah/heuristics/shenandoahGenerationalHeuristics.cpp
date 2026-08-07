@@ -23,7 +23,6 @@
  *
  */
 
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shenandoah/heuristics/shenandoahGenerationalHeuristics.hpp"
 #include "gc/shenandoah/shenandoahCollectionSet.hpp"
 #include "gc/shenandoah/shenandoahCollectorPolicy.hpp"
@@ -154,7 +153,7 @@ void ShenandoahGenerationalHeuristics::choose_collection_set(ShenandoahCollectio
   }
   heap->old_generation()->set_expected_humongous_region_promotions(humongous_regions_promoted);
   heap->old_generation()->set_expected_regular_region_promotions(regular_regions_promoted_in_place);
-  log_ergo(Info, gc, ergo)("Planning to promote in place %zu humongous regions and %zu"
+  log_info(gc, ergo)("Planning to promote in place %zu humongous regions and %zu"
                      " regular regions, spanning a total of %zu used bytes",
                      humongous_regions_promoted, regular_regions_promoted_in_place,
                      humongous_regions_promoted * ShenandoahHeapRegion::region_size_bytes() +

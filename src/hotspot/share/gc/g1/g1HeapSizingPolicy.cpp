@@ -25,10 +25,7 @@
 #include "gc/g1/g1Analytics.hpp"
 #include "gc/g1/g1CollectedHeap.hpp"
 #include "gc/g1/g1HeapSizingPolicy.hpp"
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gc_globals.hpp"
-#include "gc/shared/gcId.hpp"
-#include "jfr/jfrEvents.hpp"
 #include "logging/log.hpp"
 #include "runtime/globals.hpp"
 #include "utilities/debug.hpp"
@@ -73,7 +70,7 @@ static void log_expansion(double short_term_pause_time_ratio,
                           bool fully_expanded,
                           size_t resize_bytes) {
 
-  log_ergo(Debug, gc, ergo, heap)("Heap expansion: "
+  log_debug(gc, ergo, heap)("Heap expansion: "
                             "short term pause time ratio %1.2f%% long term pause time ratio %1.2f%% "
                             "threshold %1.2f%% pause time ratio %1.2f%% fully expanded %s "
                             "resize by %zuB",
@@ -84,17 +81,6 @@ static void log_expansion(double short_term_pause_time_ratio,
                             BOOL_TO_STR(fully_expanded),
                             resize_bytes);
 
-  EventG1HeapResize event;
-  if (event.should_commit()) {
-    event.set_gcId(GCId::current());
-    event.set_shortTermPauseTimeRatio(short_term_pause_time_ratio);
-    event.set_longTermPauseTimeRatio(long_term_pause_time_ratio);
-    event.set_threshold(threshold);
-    event.set_pauseTimeRatioTarget(pause_time_ratio);
-    event.set_fullyExpanded(fully_expanded);
-    event.set_resizeBytes(resize_bytes);
-    event.commit();
-  }
 }
 
 size_t G1HeapSizingPolicy::young_collection_expansion_amount() {
@@ -122,7 +108,7 @@ size_t G1HeapSizingPolicy::young_collection_expansion_amount() {
     _ratio_over_threshold_sum += short_term_pause_time_ratio;
   }
 
-  log_ergo(Trace, gc, ergo, heap)("Heap expansion triggers: pauses since start: %u "
+  log_trace(gc, ergo, heap)("Heap expansion triggers: pauses since start: %u "
                             "num prev pauses for heuristics: %u "
                             "ratio over threshold count: %u",
                             _pauses_since_start,
@@ -282,7 +268,7 @@ size_t G1HeapSizingPolicy::full_collection_resize_amount(bool& expand, size_t al
   if (capacity_after_gc < minimum_desired_capacity) {
     size_t expand_bytes = minimum_desired_capacity - capacity_after_gc;
 
-    log_ergo(Debug, gc, ergo, heap)("Attempt heap expansion (capacity lower than min desired capacity). "
+    log_debug(gc, ergo, heap)("Attempt heap expansion (capacity lower than min desired capacity). "
                               "Capacity: %zuB occupancy: %zuB live: %zuB "
                               "min_desired_capacity: %zuB (%zu %%)",
                               capacity_after_gc, used_after_gc, _g1h->used(), minimum_desired_capacity, MinHeapFreeRatio);
@@ -294,7 +280,7 @@ size_t G1HeapSizingPolicy::full_collection_resize_amount(bool& expand, size_t al
     // Capacity too large, compute shrinking size
     size_t shrink_bytes = capacity_after_gc - maximum_desired_capacity;
 
-    log_ergo(Debug, gc, ergo, heap)("Attempt heap shrinking (capacity higher than max desired capacity). "
+    log_debug(gc, ergo, heap)("Attempt heap shrinking (capacity higher than max desired capacity). "
                               "Capacity: %zuB occupancy: %zuB live: %zuB "
                               "maximum_desired_capacity: %zuB (%zu %%)",
                               capacity_after_gc, used_after_gc, _g1h->used(), maximum_desired_capacity, MaxHeapFreeRatio);

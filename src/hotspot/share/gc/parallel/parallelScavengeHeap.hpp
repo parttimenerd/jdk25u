@@ -30,7 +30,6 @@
 #include "gc/parallel/psYoungGen.hpp"
 #include "gc/shared/cardTableBarrierSet.hpp"
 #include "gc/shared/collectedHeap.hpp"
-#include "gc/shared/gcErgoEvent.hpp"
 #include "gc/shared/gcPolicyCounters.hpp"
 #include "gc/shared/gcWhen.hpp"
 #include "gc/shared/preGCValues.hpp"
@@ -257,7 +256,7 @@ class AdaptiveSizePolicyOutput : AllStatic {
   static bool enabled() {
     return UseParallelGC &&
            UseAdaptiveSizePolicy &&
-           (log_is_enabled(Debug, gc, ergo) || GCErgoEvent::should_emit(LogLevel::Debug));
+           log_is_enabled(Debug, gc, ergo);
   }
  public:
   static void print() {
